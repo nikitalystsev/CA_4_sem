@@ -1,15 +1,15 @@
-import read
+import my_read
 
 
 def main():
     """Главная функция"""
     filename = "data"
 
-    points = read.read_table(filename)
+    points = my_read.read_table(filename)
 
-    degree = read.read_degree()
+    degree = my_read.read_degree()
 
-    x = read.read_x()
+    x = my_read.read_x()
 
     print(x)
 
