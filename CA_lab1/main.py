@@ -1,10 +1,11 @@
 import my_read
 import my_print_data as my_print
+import my_interpolation as my_interp
 
 
 def main():
     """Главная функция"""
-    filename = "data"
+    filename = "data.txt"
 
     points = my_read.read_table(filename)
 
