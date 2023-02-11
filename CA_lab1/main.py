@@ -1,4 +1,5 @@
 import my_read
+import my_print_data as my_print
 
 
 def main():
@@ -11,7 +12,7 @@ def main():
 
     x = my_read.read_x()
 
-    print(x)
+    my_print.print_table(points)
 
 
 if __name__ == "__main__":
