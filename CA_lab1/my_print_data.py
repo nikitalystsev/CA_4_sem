@@ -21,7 +21,9 @@ def print_table(points_table):
 
 
 def print_matrix(matrix):
-    """Функция выводит матрицу на экран в консоли"""
+    """
+    Функция выводит матрицу на экран в консоли
+    """
     print("My matrix:")
 
     for i in range(len(matrix)):

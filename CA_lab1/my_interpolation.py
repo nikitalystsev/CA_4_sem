@@ -4,7 +4,9 @@ EPS = 1e-9
 
 
 def float_equal(a, b):
-    """Функция сравнивает числа с плавающей запятой"""
+    """
+    Функция сравнивает числа с плавающей запятой
+    """
     return m.fabs(a - b) < EPS
 
 
@@ -32,7 +34,6 @@ def collect_config(points, x, n):
     index = get_table_value_for_x(points, x)
 
     left = right = index
-    # print("left = ", left, "right = ", right, sep='')
 
     for i in range(n):
         if i % 2 == 0:
@@ -45,7 +46,7 @@ def collect_config(points, x, n):
                 left -= 1
             else:
                 right += 1
-    # print("left = ", left, "right = ", right, sep='')
+
     return points[left:right + 1]
 
 
