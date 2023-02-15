@@ -1,5 +1,5 @@
 import math as m
-
+import copy as cp
 EPS = 1e-9
 
 
@@ -12,7 +12,10 @@ def float_equal(a, b):
 
 def get_table_value_for_x(points, x):
     """
-    Функция ищет в таблице ближайшее значение к x
+    Функция ищет ближайшее к x табличное значение
+    :param points: считанный список точек
+    :param x: точка интерполирования
+    :return: индекс ближайшей к x табличной точки
     """
     diff = m.fabs(x - points[0].x)
 
@@ -28,8 +31,11 @@ def get_table_value_for_x(points, x):
 
 def collect_config(points, x, n):
     """
-    Функция собирает конфигурацию для дальнейшей интерполяции
-    n - степень полинома
+    Функция собирает конфигурацию
+    :param points: считанный список точек
+    :param x: точка интерполирования
+    :param n: степень полинома
+    :return: список точек конфигурации
     """
     index = get_table_value_for_x(points, x)
 
@@ -53,13 +59,16 @@ def collect_config(points, x, n):
 def get_points_for_hermite(points):
     """
     Функция получает таблицу точек для полинома Эрмита
+    :param points: список точек конфигурации
+    :return: список точек конфигурации для полинома Эрмита
     """
     new_table = []
 
     for point in points:
         multiplicity = 2  # кратность узла
         for i in range(multiplicity):
-            new_table.append(point)
+            tmp_point = cp.deepcopy(point)
+            new_table.append(tmp_point)
 
     return new_table
 
@@ -67,7 +76,9 @@ def get_points_for_hermite(points):
 def get_diff_table(points):
     """
     Функция получает таблицу разделенных разностей
-    для полинома Эрмита и Ньютона
+    для полиномов Ньютона или Эрмита
+    :param points: список точек конфигурации
+    :return: матрица - таблица разделенных разностей
     """
     count_points = len(points)
 
@@ -93,7 +104,10 @@ def get_diff_table(points):
 
 def get_corner(diff_table):
     """
-    Функция получает диагональные элементы из таблицы интерполяции
+    Функция получает нужные разделенные разности
+    (находятся на главной диагонали)
+    :param diff_table: матрица разделенных разностей
+    :return: список нужных разностей
     """
     diagonal = []
 
@@ -103,14 +117,25 @@ def get_corner(diff_table):
     return diagonal
 
 
-def polynom(x, diff, points):
+def polynom(points, x, n):
     """
-    Функция строит полином Ньютона или Эрмита
-    и вычисляет значение полинома в точке x
+    Функция строит полином Ньютона или Эрмита 
+    и вычисляет значение при фиксированном x
+    :param points: список точек конфигурации
+    :param x: точка интерполирования
+    :param n: степень полинома
+    :return: значение функции при x
     """
+
+    # получаем таблицу разделенных разностей
+    diff_table = get_diff_table(points)
+
+    # отбираем нужные разности
+    diff = get_corner(diff_table)
+
     result = diff[0]
 
-    for i in range(1, len(diff)):
+    for i in range(1, n + 1):
         p = diff[i]
         for j in range(i):
             p *= (x - points[j].x)

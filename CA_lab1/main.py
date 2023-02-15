@@ -1,6 +1,9 @@
 import my_read
 import my_print_data as my_print
 import my_interpolation as my_interp
+import tasks
+
+SIZE = 75
 
 
 def main():
@@ -9,32 +12,41 @@ def main():
     """
     filename = "data.txt"
 
-    # считываем данные
+    print("\n" + SIZE * "-")
+
+    print("Считанная таблица:")
     points = my_read.read_table(filename)
-    degree = my_read.read_degree()
-    x = my_read.read_x()
+    # my_print.print_table(points)
 
-    # выводим считанные точки
-    my_print.print_table(points)
+    if not tasks.is_change_sign(points):
+        print("Функция не имеет корней")
 
-    # собираем конфигурацию
-    points = my_interp.collect_config(points, x, degree)
+    root_newton = tasks.get_newton_root(points, 7)
+    root_hermit = tasks.get_hermit_root(points, 10)
+    print("hermit root = ", root_hermit)
+    print("newton root = ", root_newton)
 
-    # выводим полученные точки
-    my_print.print_table(points)
-
-    # интерполируем полиномом Ньютона
-    diff_table_newton = my_interp.get_diff_table(points)
-    diff_newton = my_interp.get_corner(diff_table_newton)
-    result_newton = my_interp.polynom(x, diff_newton, points)
-
-    # интерполируем полиномом Эрмита
-    new_table = my_interp.get_points_for_hermite(points)
-    diff_table_hermit = my_interp.get_diff_table(new_table)
-    diff_hermit = my_interp.get_corner(diff_table_hermit)
-    result_hermit = my_interp.polynom(x, diff_hermit, new_table)
-
-    print("newton:", result_newton, "hermit:", result_hermit, sep='\n')
+    # degree = my_read.read_degree()
+    # x = my_read.read_x()
+    #
+    # print("\n" + SIZE * "-")
+    #
+    # config_points = my_interp.collect_config(points, x, degree)
+    # result_newton = my_interp.polynom(config_points, x, degree)
+    #
+    # config_points = my_interp.get_points_for_hermite(config_points)
+    # result_hermit = my_interp.polynom(config_points, x, degree)
+    #
+    # print(f"Степень полинома Ньютона n = {degree}, y({x:<.3f}) = {result_newton:<.7f}")
+    # print(f"Степень полинома Эрмита  n = {degree}, y({x:<.3f}) = {result_hermit:<.7f}")
+    #
+    # print("\n" + SIZE * "-")
+    #
+    # print("Таблица значений y(x) при степенях "
+    #       "полиномов Ньютона и Эрмита при x = {:<13.3f}".format(x))
+    # tasks.get_table_value(x, points)
+    #
+    # print("\n" + SIZE * "-")
 
 
 if __name__ == "__main__":
