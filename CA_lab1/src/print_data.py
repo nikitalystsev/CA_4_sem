@@ -20,13 +20,13 @@ def print_table(points_table):
     print("|" + SIZE_TABLE * "-" + "|")
 
 
-def print_matrix(matrix):
+def print_matrix(matrix, n, m):
     """
     Функция выводит матрицу на экран в консоли
     """
     print("My matrix:")
 
-    for i in range(len(matrix)):
-        for j in range(len(matrix[0])):
+    for i in range(n):
+        for j in range(m):
             print(f"{matrix[i][j]:^10.3f}", end=" ")
         print("\n")

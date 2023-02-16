@@ -1,4 +1,4 @@
-import my_point as mp
+import src.point as point
 
 
 def read_table(filename):
@@ -10,7 +10,7 @@ def read_table(filename):
     with open(filename) as file:
         for line in file:
             data = list(map(float, line.split()))
-            point = mp.Point(data[0], data[1], data[2])
+            point = point.Point(data[0], data[1], data[2])
             points.append(point)
 
     return points
@@ -32,3 +32,20 @@ def read_x():
     x = float(input("Введите значение аргумента x, для которого выполняется интерполяция: "))
 
     return x
+
+
+def read_system_table(filename):
+    """
+    Функция считывает таблицу из текстового файла
+    :param filename: путь до файла
+    :return: таблицу
+    """
+    points = []
+
+    with open(filename) as file:
+        for line in file:
+            data = list(map(float, line.split()))
+            dot = point.Point(data[0], data[1], 0)
+            points.append(dot)
+
+    return points

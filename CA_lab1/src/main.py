@@ -1,6 +1,6 @@
-import my_read
-import my_print_data as my_print
-import my_interpolation as my_interp
+import src.read
+import src.print_data
+import src.interpolation
 import tasks
 
 SIZE = 75
@@ -10,21 +10,25 @@ def main():
     """
     Главная функция
     """
-    filename = "data.txt"
 
-    print("\n" + SIZE * "-")
+    root = tasks.get_system_root(4)
+    print("root of system = ", root)
+    # filename = "data.txt"
+    #
+    # print("\n" + SIZE * "-")
 
-    print("Считанная таблица:")
-    points = my_read.read_table(filename)
-    # my_print.print_table(points)
+    # print("Считанная таблица:")
 
-    if not tasks.is_change_sign(points):
-        print("Функция не имеет корней")
-
-    root_newton = tasks.get_newton_root(points, 7)
-    root_hermit = tasks.get_hermit_root(points, 10)
-    print("hermit root = ", root_hermit)
-    print("newton root = ", root_newton)
+    # points = my_read.read_table(filename)
+    # # my_print.print_table(points)
+    #
+    # if not tasks.is_change_sign(points):
+    #     print("Функция не имеет корней")
+    #
+    # root_newton = tasks.get_newton_root(points, 7)
+    # root_hermit = tasks.get_hermit_root(points, 10)
+    # print("hermit root = ", root_hermit)
+    # print("newton root = ", root_newton)
 
     # degree = my_read.read_degree()
     # x = my_read.read_x()

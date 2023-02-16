@@ -1,5 +1,7 @@
 import math as m
 import copy as cp
+import src.print_data as print_data
+
 EPS = 1e-9
 
 
@@ -56,15 +58,15 @@ def collect_config(points, x, n):
     return points[left:right + 1]
 
 
-def get_points_for_hermite(points):
+def get_points_for_hermite(config_points):
     """
     Функция получает таблицу точек для полинома Эрмита
-    :param points: список точек конфигурации
+    :param config_points: список точек конфигурации
     :return: список точек конфигурации для полинома Эрмита
     """
     new_table = []
 
-    for point in points:
+    for point in config_points:
         multiplicity = 2  # кратность узла
         for i in range(multiplicity):
             tmp_point = cp.deepcopy(point)
@@ -73,31 +75,31 @@ def get_points_for_hermite(points):
     return new_table
 
 
-def get_diff_table(points):
+def get_diff_table(config_points):
     """
     Функция получает таблицу разделенных разностей
     для полиномов Ньютона или Эрмита
-    :param points: список точек конфигурации
+    :param config_points: список точек конфигурации
     :return: матрица - таблица разделенных разностей
     """
-    count_points = len(points)
+    count_points = len(config_points)
 
     # создаем матрицу под разделенные разности
     diff_table = [[0] * count_points for _ in range(count_points)]
 
     # первый столбец заполняем значениями функций из таблицы в узлах
     for i in range(count_points):
-        diff_table[i][0] = points[i].y
+        diff_table[i][0] = config_points[i].y
 
     # получаем разделенные разности
     for i in range(1, count_points):
         for j in range(i, count_points):
-            if not float_equal(points[j].x, points[j - i].x):
+            if not float_equal(config_points[j].x, config_points[j - i].x):
                 diff_table[j][i] = \
                     (diff_table[j][i - 1] - diff_table[j - 1][i - 1]) / \
-                    (points[j].x - points[j - i].x)
+                    (config_points[j].x - config_points[j - i].x)
             else:
-                diff_table[j][i] = points[j].derivative
+                diff_table[j][i] = config_points[j].derivative
 
     return diff_table
 
@@ -117,28 +119,30 @@ def get_corner(diff_table):
     return diagonal
 
 
-def polynom(points, x, n):
+def polynom(config_points, x, n):
     """
     Функция строит полином Ньютона или Эрмита 
     и вычисляет значение при фиксированном x
-    :param points: список точек конфигурации
+    :param config_points: список точек конфигурации
     :param x: точка интерполирования
     :param n: степень полинома
     :return: значение функции при x
     """
-
     # получаем таблицу разделенных разностей
-    diff_table = get_diff_table(points)
+    diff_table = get_diff_table(config_points)
 
+    print_data.print_matrix(diff_table, n + 1, n + 1)
     # отбираем нужные разности
     diff = get_corner(diff_table)
 
+    print("Используемые разности:")
+    print(diff[:n + 1])
     result = diff[0]
 
     for i in range(1, n + 1):
         p = diff[i]
         for j in range(i):
-            p *= (x - points[j].x)
+            p *= (x - config_points[j].x)
         result += p
 
     return result
