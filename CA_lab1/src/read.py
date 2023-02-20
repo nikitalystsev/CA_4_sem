@@ -1,4 +1,4 @@
-import src.point as point
+import point as point
 
 
 def read_table(filename):
@@ -10,8 +10,8 @@ def read_table(filename):
     with open(filename) as file:
         for line in file:
             data = list(map(float, line.split()))
-            point = point.Point(data[0], data[1], data[2])
-            points.append(point)
+            dot = point.Point(data[0], data[1], data[2])
+            points.append(dot)
 
     return points
 

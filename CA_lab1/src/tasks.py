@@ -1,37 +1,34 @@
-import src.interpolation as interpolation
-import src.print_data as print_data
-import src.read as read
+import interpolation as interpolation
+import print_data as print_data
+import read as read
 import copy as cp
-import src.point as point
+import point as point
 
 SIZE_TABLE = 53
 
 
-def get_table_value(x, points) -> None:
+def get_table_value(x, points):
     """
-    Функция получает таблицы значений при разных степенях полиномов
+    Функция получает таблицу значений при разных степенях полиномов
     и при фиксированном x
     :param x: точка интерполирования
     :param points: считанный список точек
-    :return:
+    :return: таблица значений
     """
-    print("|" + SIZE_TABLE * "-" + "|")
-    print(f"| {'Степень полинома':^17s}|{'Полином Ньютона':^17s}|{'Полином Эрмита':^16s}|")
-    print("|" + SIZE_TABLE * "-" + "|")
+    table_value = []
 
     for i in range(1, 6):
         config_points = interpolation.collect_config(points, x, i)
         result_newton = interpolation.polynom(config_points, x, i)
         config_points = interpolation.get_points_for_hermite(config_points)
         result_hermit = interpolation.polynom(config_points, x, i)
-        print("| {:^16d} | {:^15.7f} | {:^14.7f} |".format(
-            i,
-            result_newton,
-            result_hermit)
-        )
 
-    print("|" + SIZE_TABLE * "-" + "|")
+        table_value.append([i, result_newton, result_hermit])
 
+    return table_value
+
+
+#####################################################################################################
 
 def is_change_sign(points) -> bool:
     """
@@ -51,17 +48,18 @@ def is_change_sign(points) -> bool:
     return False
 
 
-def change_column(points):
+def swap_abscissa_ordinate(points):
     """
     Функция меняет местами столбцы с аргументом функции и ее значением
     :param points: считанный список точек
     :return: преобразованный список точек
     """
+    tmp_points = cp.deepcopy(points)
 
-    for i in range(len(points)):
-        points[i].x, points[i].y = points[i].y, points[i].x
+    for i in range(len(tmp_points)):
+        tmp_points[i].x, tmp_points[i].y = tmp_points[i].y, tmp_points[i].x
 
-    return points
+    return tmp_points
 
 
 def get_newton_root(points, n):
@@ -74,9 +72,11 @@ def get_newton_root(points, n):
     """
     tmp_points = cp.deepcopy(points)
 
-    tmp_points = change_column(tmp_points)
+    tmp_points = swap_abscissa_ordinate(tmp_points)
 
     tmp_points.sort(key=lambda dot: dot.y)
+
+    tmp_points = interpolation.collect_config(tmp_points, 0, n)
 
     root = interpolation.polynom(tmp_points, 0, n)
 
@@ -93,21 +93,40 @@ def get_hermit_root(points, n):
     """
     tmp_points = cp.deepcopy(points)
 
+    tmp_points = interpolation.collect_config(tmp_points, 0, n)
     tmp_points = interpolation.get_points_for_hermite(tmp_points)
-
-    tmp_points = change_column(tmp_points)
+    print_data.print_table(tmp_points)
+    tmp_points = swap_abscissa_ordinate(tmp_points)
 
     for dot in tmp_points:
         if not interpolation.float_equal(dot.derivative, 0):
-            point.derivative = 1 / dot.derivative
+            dot.derivative = 1 / dot.derivative
         else:
-            point.derivative = 0
+            dot.derivative = 0
 
-    tmp_points.sort(key=lambda dot: dot.y)
+    tmp_points.sort(key=lambda t: t.y)
 
     root = interpolation.polynom(tmp_points, 0, n)
 
     return root
+
+
+def get_root(points, n):
+    """
+    Функция вычисляет корень таблично заданной функции
+    :param points: считанный список точек
+    :param n: степень полинома
+    :return: корень
+    """
+    newton_points = cp.deepcopy(points)
+    hermit_points = cp.deepcopy(points)
+
+    root_newton = get_newton_root(newton_points, n)
+    root_hermit = get_hermit_root(hermit_points, n)
+
+    return root_newton, root_hermit
+
+#####################################################################################################
 
 
 # С помощью интерполяции перестроить приведенные табличные представления
@@ -120,25 +139,42 @@ def get_hermit_root(points, n):
 # Чтобы найти разность Y тебе нужно из значений Y второй таблицы
 # вычесть значения Y из первой таблицы, но с помощью интерполяции в тех же x
 
-def func(points1, points2, n):
+def change_table(points1, points2, n):
+    """
+    Функция в первой таблице изменяет с помощью интерполяции
+    ординаты в соответствии с абсциссами второй таблицы
+    :param points1: первая таблица точек
+    :param points2: вторая таблица точек
+    :param n: степень полинома
+    :return: новую первую таблицу
+    """
     new_points1 = []
 
     for i in range(len(points2)):
-        # найти значение при тех же Х
         tmp_points = cp.deepcopy(points1)
+
+        tmp_points = interpolation.collect_config(tmp_points, points2[i].x, n)
         result_newton = interpolation.polynom(tmp_points, points2[i].x, n)
+
         new_points1.append(point.Point(points1[i].x, result_newton, 0))
 
     return new_points1
 
 
 def get_subtract_table(points1, points2):
-    table = []
+    """
+    Функция получает новую таблицу, в которой содержится зависимость разности функций y(x) из
+    (1) и (2) от фиксированного набора значений аргумента из второй таблицы
+    :param points1: первая уже измененная ранее таблица точек
+    :param points2: вторая таблицы точек
+    :return: таблица разностей функций y(x)
+    """
+    subtract_table = []
 
     for i in range(len(points2)):
-        table.append(point.Point(points2[i].x, points1[i].y - points2[i].y, 0))
+        subtract_table.append(point.Point(points2[i].x, points2[i].y - points1[i].y, 0))
 
-    return table
+    return subtract_table
 
 
 def get_system_root(n):
@@ -147,6 +183,7 @@ def get_system_root(n):
     :param n: степень полинома Ньютона
     :return: корень
     """
+
     points1 = read.read_system_table("../data/system1.txt")
 
     # print("Первая считанная таблица X(Y):")
@@ -155,7 +192,7 @@ def get_system_root(n):
     points2 = read.read_system_table("../data/system2.txt")
 
     # смена столбцов
-    points1 = change_column(points1)
+    points1 = swap_abscissa_ordinate(points1)
 
     print("Первая считанная таблица Y(X):")
     print_data.print_table(points1)
@@ -163,7 +200,8 @@ def get_system_root(n):
     print("Вторая считанная таблица Y(X):")
     print_data.print_table(points2)
 
-    points1 = func(points1, points2, n)
+    # степень полинома len(points1) - 1, поскольку нужно, чтобы все точки участвовали в интерполяции
+    points1 = change_table(points1, points2, len(points1) - 1)
 
     print("Интерполированная первая таблица (Ординаты интерполированы для абсцисс второй таблицы):")
     print_data.print_table(points1)
@@ -173,11 +211,12 @@ def get_system_root(n):
     print("Таблица с разностями абсцисс двух таблиц и ординат второй таблицы")
     print_data.print_table(table)
 
-    table = change_column(table)
+    root_x = get_newton_root(table, n)
 
-    print("Таблица с разностями абсцисс двух таблиц и ординат второй таблицы (столбцы поменяны):")
-    print_data.print_table(table)
+    tmp_points2 = cp.deepcopy(points2)
 
-    root = get_newton_root(table, n)
+    config_points2 = interpolation.collect_config(tmp_points2, root_x, n)
 
-    return root
+    root_y = interpolation.polynom(config_points2, root_x, n)
+
+    return root_x, root_y

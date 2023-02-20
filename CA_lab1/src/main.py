@@ -1,7 +1,6 @@
-import src.read
-import src.print_data
-import src.interpolation
-import tasks
+import read as read
+import print_data as print_data
+import tasks as tasks
 
 SIZE = 75
 
@@ -9,48 +8,33 @@ SIZE = 75
 def main():
     """
     Главная функция
+    :return:
     """
 
-    root = tasks.get_system_root(4)
-    print("root of system = ", root)
-    # filename = "data.txt"
-    #
-    # print("\n" + SIZE * "-")
+    filename = "../data/data.txt"
 
-    # print("Считанная таблица:")
+    print("\n" + SIZE * "-")
 
-    # points = my_read.read_table(filename)
-    # # my_print.print_table(points)
-    #
-    # if not tasks.is_change_sign(points):
-    #     print("Функция не имеет корней")
-    #
-    # root_newton = tasks.get_newton_root(points, 7)
-    # root_hermit = tasks.get_hermit_root(points, 10)
-    # print("hermit root = ", root_hermit)
-    # print("newton root = ", root_newton)
+    points = read.read_table(filename)
 
-    # degree = my_read.read_degree()
-    # x = my_read.read_x()
-    #
-    # print("\n" + SIZE * "-")
-    #
-    # config_points = my_interp.collect_config(points, x, degree)
-    # result_newton = my_interp.polynom(config_points, x, degree)
-    #
-    # config_points = my_interp.get_points_for_hermite(config_points)
-    # result_hermit = my_interp.polynom(config_points, x, degree)
-    #
-    # print(f"Степень полинома Ньютона n = {degree}, y({x:<.3f}) = {result_newton:<.7f}")
-    # print(f"Степень полинома Эрмита  n = {degree}, y({x:<.3f}) = {result_hermit:<.7f}")
-    #
-    # print("\n" + SIZE * "-")
-    #
-    # print("Таблица значений y(x) при степенях "
-    #       "полиномов Ньютона и Эрмита при x = {:<13.3f}".format(x))
-    # tasks.get_table_value(x, points)
-    #
-    # print("\n" + SIZE * "-")
+    print("Считанная таблица:")
+    print_data.print_table(points)
+    n = read.read_degree()
+    x = read.read_x()
+
+    table_value = tasks.get_table_value(x, points)
+    print_data.print_table_value(table_value, x)
+
+    if tasks.is_change_sign(points):
+        root_newton, root_hermit = tasks.get_root(points, n)
+        print_data.print_root(points, root_newton, root_hermit, n)
+    else:
+        print("Функция не имеет корней!")
+
+    root_system_x, root_system_y = tasks.get_system_root(n)
+    print_data.print_system_root(root_system_x, root_system_y, n)
+
+    print("\n" + SIZE * "-")
 
 
 if __name__ == "__main__":

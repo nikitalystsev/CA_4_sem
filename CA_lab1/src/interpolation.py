@@ -1,6 +1,6 @@
 import math as m
 import copy as cp
-import src.print_data as print_data
+
 
 EPS = 1e-9
 
@@ -84,14 +84,11 @@ def get_diff_table(config_points):
     """
     count_points = len(config_points)
 
-    # создаем матрицу под разделенные разности
     diff_table = [[0] * count_points for _ in range(count_points)]
 
-    # первый столбец заполняем значениями функций из таблицы в узлах
     for i in range(count_points):
         diff_table[i][0] = config_points[i].y
 
-    # получаем разделенные разности
     for i in range(1, count_points):
         for j in range(i, count_points):
             if not float_equal(config_points[j].x, config_points[j - i].x):
@@ -104,7 +101,7 @@ def get_diff_table(config_points):
     return diff_table
 
 
-def get_corner(diff_table):
+def get_diagonal(diff_table):
     """
     Функция получает нужные разделенные разности
     (находятся на главной диагонали)
@@ -128,18 +125,13 @@ def polynom(config_points, x, n):
     :param n: степень полинома
     :return: значение функции при x
     """
-    # получаем таблицу разделенных разностей
     diff_table = get_diff_table(config_points)
 
-    print_data.print_matrix(diff_table, n + 1, n + 1)
-    # отбираем нужные разности
-    diff = get_corner(diff_table)
+    diff = get_diagonal(diff_table)
 
-    print("Используемые разности:")
-    print(diff[:n + 1])
     result = diff[0]
 
-    for i in range(1, n + 1):
+    for i in range(1, len(diff)):
         p = diff[i]
         for j in range(i):
             p *= (x - config_points[j].x)
