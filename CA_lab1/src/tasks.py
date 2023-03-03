@@ -172,7 +172,7 @@ def get_subtract_table(points1, points2):
     subtract_table = []
 
     for i in range(len(points2)):
-        subtract_table.append(point.Point(points2[i].x, points2[i].y - points1[i].y, 0))
+        subtract_table.append(point.Point(points2[i].x, - points2[i].y + points1[i].y, 0))
 
     return subtract_table
 
