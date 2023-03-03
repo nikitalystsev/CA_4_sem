@@ -1,6 +1,17 @@
-from my_point import *
-
 SIZE_TABLE = 31
+
+
+class Point:
+    """
+    Точка
+    """
+
+    def __init__(self, x: float = 0, y: float = 0):
+        """
+        Инициализация атрибутов класса
+        """
+        self.x = x
+        self.y = y
 
 
 class Data:
@@ -12,7 +23,7 @@ class Data:
         """
         Инициализация атрибутов класса
         """
-        self.data_table = list()
+        self.data_table: list[Point] = list()
         self.x = None
 
     def read_data(self, filename: str) -> None:

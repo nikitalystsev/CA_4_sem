@@ -12,9 +12,13 @@ def main() -> None:
 
     data.print_data()
 
+    data.read_x()
+
     spline = Spline(data)
-    spline.calc_a_n_coef()
-    print(spline.a_n)
+
+    spline.spline_interpolation()
+
+    spline.print_spline_res()
 
 
 if __name__ == "__main__":
