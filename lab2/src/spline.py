@@ -180,19 +180,14 @@ class Spline:
         Метод выполняет интерполяцию сплайном
         """
         self.calc_a_n_coef()
-        # print("a_coef", len(spline.a_n), spline.a_n, end='\n\n')
         self.calc_diff_h()
-        # print(len(spline.h_n), spline.h_n, end='\n\n')
         self.calc_ksi_theta()
-        # print(len(spline.ksi_n), spline.ksi_n, end='\n')
-        # print(len(spline.theta_n), spline.theta_n, end='\n\n')
         self.calc_c_n_coef()
-        # print("c_coef", len(spline.c_n), spline.c_n, end='\n\n')
         self.calc_b_n_coef()
-        # print("b_coef", len(spline.b_n), spline.b_n, end='\n\n')
         self.calc_d_n_coef()
-        # print("d_coef", len(spline.d_n), spline.d_n, end='\n\n')
+
         num, x0, x1 = self.find_interval(self.data.x)
+        print("num =", num)
 
         self.res = \
             self.a_n[num] + self.b_n[num] * (self.data.x - x0) + self.c_n[num] * (self.data.x - x0) ** 2 + \
