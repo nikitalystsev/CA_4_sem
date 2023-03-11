@@ -44,20 +44,42 @@ class Data:
             self.x = float(input("Введите значение аргумента x, "
                                  "для которого выполняется интерполяция: "))
 
+    def set_x(self, x: float):
+        """
+        Метод устанавливает значение аргумента интерполяции
+        """
+        self.x = x
+
+    def get_data_table(self):
+        """
+        Метод возвращает таблицу с точками
+        """
+
+        return self.data_table
+
+    def get_x(self):
+        """
+        Метод возвращает точку интерполирования
+        """
+
+        return self.x
+
     def del_data(self) -> None:
         """
         Метод позволяет удалить данные для интерполяции
         """
         self.data_table.clear()
+        self.x = None
 
-    def print_data(self):
+    def print_data_table(self):
         """
         Метод выводит данные на экран
         """
         if len(self.data_table) == 0:
-            print("Данные еще не были получены!")
+            print("Таблица с точками еще не была получена!")
             return
 
+        print("\nТаблица с точками - узлами интерполяции:")
         print("|" + SIZE_TABLE * "-" + "|")
         print(f"|{'x':^15s}|{'y':^15s}|")
         print("|" + SIZE_TABLE * "-" + "|")
@@ -69,3 +91,13 @@ class Data:
             )
 
         print("|" + SIZE_TABLE * "-" + "|")
+
+    def print_x(self):
+        """
+        Метод выводит аргумент интерполирования
+        """
+        if self.x is None:
+            print("Точка интерполирования еще не была получена!")
+            return
+
+        print(f"\nТочка интерполирования x = {self.x: <15.3f}")

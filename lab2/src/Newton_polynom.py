@@ -20,30 +20,33 @@ class Newton:
         """
         Инициализация атрибутов класса
         """
-        self.data = data
+        self.x = data.get_x()
+        self.data_table = data.get_data_table()
         self.n = n
+        self.diff_table = None
         self.config_points = list()
+        self.res = None
 
-    def get_table_value_for_x(self, x: float):
+    def get_table_value_for_x(self):
         """
         Функция ищет ближайшее к x табличное значение
         """
-        diff = m.fabs(x - self.data.data_table[0].x)
+        diff = m.fabs(self.x - self.data_table[0].x)
 
         index = 0
 
-        for ind, val in enumerate(self.data.data_table):
-            if m.fabs(x - val.x) < diff:
-                diff = m.fabs(x - val.x)
+        for ind, val in enumerate(self.data_table):
+            if m.fabs(self.x - val.x) < diff:
+                diff = m.fabs(self.x - val.x)
                 index = ind
 
         return index
 
-    def collect_config(self, x: float):
+    def collect_config(self):
         """
         Функция собирает конфигурацию
         """
-        index = self.get_table_value_for_x(x)
+        index = self.get_table_value_for_x()
 
         left = right = index
 
@@ -54,37 +57,34 @@ class Newton:
                 else:
                     left -= 1
             else:
-                if right == len(self.data.data_table) - 1:
+                if right == len(self.data_table) - 1:
                     left -= 1
                 else:
                     right += 1
 
-        return self.data.data_table[left:right + 1]
+        return self.data_table[left:right + 1]
 
-    def get_diff_table(self, x: float):
+    def get_diff_table(self):
         """
         Функция получает таблицу разделенных разностей
         для полиномов Ньютона
         """
-        self.config_points = self.collect_config(x)
+        self.config_points = self.collect_config()
 
         count_points = len(self.config_points)
 
-        diff_table = [[0] * count_points for _ in range(count_points)]
+        self.diff_table = [[0] * count_points for _ in range(count_points)]
 
         for i in range(count_points):
-            diff_table[i][0] = self.config_points[i].y
+            self.diff_table[i][0] = self.config_points[i].y
 
         for i in range(1, count_points):
             for j in range(i, count_points):
-                diff_table[j][i] = \
-                    (diff_table[j][i - 1] - diff_table[j - 1][i - 1]) / \
+                self.diff_table[j][i] = \
+                    (self.diff_table[j][i - 1] - self.diff_table[j - 1][i - 1]) / \
                     (self.config_points[j].x - self.config_points[j - i].x)
 
-        return diff_table
-
-    @staticmethod
-    def get_diagonal(diff_table):
+    def get_diagonal(self):
         """
         Функция получает нужные разделенные разности
         (находятся на главной диагонали)
@@ -92,39 +92,54 @@ class Newton:
         """
         diagonal = []
 
-        for i in range(len(diff_table)):
-            diagonal.append(diff_table[i][i])
+        for i in range(len(self.diff_table)):
+            diagonal.append(self.diff_table[i][i])
 
         return diagonal
 
-    def newton_polynom(self, x: float):
+    def newton_polynom(self):
         """
         Функция строит полином Ньютона или Эрмита
         и вычисляет значение при фиксированном x
         """
-        diff_table = self.get_diff_table(x)
+        self.get_diff_table()
 
-        diff = self.get_diagonal(diff_table)
+        diff = self.get_diagonal()
 
-        result = diff[0]
+        self.res = diff[0]
 
-        for i in range(1, len(diff)):
+        for i in range(1, self.n):
             p = diff[i]
             for j in range(i):
-                p *= (x - self.config_points[j].x)
-            result += p
+                p *= (self.x - self.config_points[j].x)
+            self.res += p
 
-        return result
-
-    def get_derivative2_polynom(self, x: float, eps: float):
+    def derivative2_newton_polynom(self, x: float, eps: float):
         """
         Метод вычисляет вторую производную полинома Ньютона
         f''(x) ≈ [f(x+h) - 2f(x) + f(x-h)] / h^2
         где h - шаг дискретизации.
         """
+        self.x = x + eps
+        self.newton_polynom()
+        res_plus_h = self.res
 
-        fx_plus_h = self.newton_polynom(x + eps)
-        fx_minus_h = self.newton_polynom(x - eps)
-        fx = self.newton_polynom(x)
+        self.x = x
+        self.newton_polynom()
+        res = self.res
 
-        return (fx_plus_h - 2 * fx + fx_minus_h) / (eps ** 2)
+        self.x = x - eps
+        self.newton_polynom()
+        res_minus_h = self.res
+
+        return (res_plus_h - 2 * res + res_minus_h) / (eps ** 2)
+
+    def print_newton_res(self):
+        """
+        Метод выводит результат интерполяции полиномом Ньютона
+        """
+        if self.res is None:
+            print("Интерполяция еще не была произведена!")
+            return
+
+        print(f"Результат интерполяции полиномом Ньютона {self.n}-й степени: y = {self.res: <15.3f}\n")
