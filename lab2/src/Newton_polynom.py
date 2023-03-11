@@ -1,7 +1,5 @@
 import math as m
-import copy as cp
 from dataClass import *
-from scipy.misc import derivative
 
 EPS = 1e-9
 
@@ -18,35 +16,34 @@ class Newton:
     Полином Ньютона
     """
 
-    def __init__(self, data: Data, n: int = 1):
+    def __init__(self, data: Data, n: int = 3):
         """
         Инициализация атрибутов класса
         """
         self.data = data
         self.n = n
-        self.config_points = None
-        self.diff_table = None
+        self.config_points = list()
 
-    def get_table_value_for_x(self):
+    def get_table_value_for_x(self, x: float):
         """
         Функция ищет ближайшее к x табличное значение
         """
-        diff = m.fabs(self.data.x - self.data.data_table[0].x)
+        diff = m.fabs(x - self.data.data_table[0].x)
 
         index = 0
 
         for ind, val in enumerate(self.data.data_table):
-            if m.fabs(self.data.x - val.x) < diff:
-                diff = m.fabs(self.data.x - val.x)
+            if m.fabs(x - val.x) < diff:
+                diff = m.fabs(x - val.x)
                 index = ind
 
         return index
 
-    def collect_config(self):
+    def collect_config(self, x: float):
         """
         Функция собирает конфигурацию
         """
-        index = self.get_table_value_for_x()
+        index = self.get_table_value_for_x(x)
 
         left = right = index
 
@@ -64,12 +61,12 @@ class Newton:
 
         return self.data.data_table[left:right + 1]
 
-    def get_diff_table(self):
+    def get_diff_table(self, x: float):
         """
         Функция получает таблицу разделенных разностей
         для полиномов Ньютона
         """
-        self.config_points = self.collect_config()
+        self.config_points = self.collect_config(x)
 
         count_points = len(self.config_points)
 
@@ -86,7 +83,8 @@ class Newton:
 
         return diff_table
 
-    def get_diagonal(self):
+    @staticmethod
+    def get_diagonal(diff_table):
         """
         Функция получает нужные разделенные разности
         (находятся на главной диагонали)
@@ -94,8 +92,8 @@ class Newton:
         """
         diagonal = []
 
-        for i in range(len(self.diff_table)):
-            diagonal.append(self.diff_table[i][i])
+        for i in range(len(diff_table)):
+            diagonal.append(diff_table[i][i])
 
         return diagonal
 
@@ -104,9 +102,9 @@ class Newton:
         Функция строит полином Ньютона или Эрмита
         и вычисляет значение при фиксированном x
         """
-        self.diff_table = self.get_diff_table()
+        diff_table = self.get_diff_table(x)
 
-        diff = self.get_diagonal()
+        diff = self.get_diagonal(diff_table)
 
         result = diff[0]
 
@@ -118,8 +116,15 @@ class Newton:
 
         return result
 
-    def get_derivative_polynom(self):
+    def get_derivative2_polynom(self, x: float, eps: float):
         """
         Метод вычисляет вторую производную полинома Ньютона
+        f''(x) ≈ [f(x+h) - 2f(x) + f(x-h)] / h^2
+        где h - шаг дискретизации.
         """
-        return derivative(self.newton_polynom, self.data.x, n=2, dx=EPS)
+
+        fx_plus_h = self.newton_polynom(x + eps)
+        fx_minus_h = self.newton_polynom(x - eps)
+        fx = self.newton_polynom(x)
+
+        return (fx_plus_h - 2 * fx + fx_minus_h) / (eps ** 2)

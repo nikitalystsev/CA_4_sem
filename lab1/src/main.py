@@ -11,7 +11,7 @@ def main():
     :return:
     """
 
-    filename = "../data/data.txt"
+    filename = "../data/data2.txt"
 
     print("\n" + SIZE * "-")
 

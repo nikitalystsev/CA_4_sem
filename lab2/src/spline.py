@@ -51,7 +51,7 @@ class Spline:
             hn = self.data.data_table[n].x - self.data.data_table[n - 1].x
             self.h_n.append(hn)
 
-    def calc_ksi_theta(self) -> None:
+    def calc_ksi_theta(self, ksi2: float, theta2: float) -> None:
         """
         Метод позволяет вычислить прогоночные коэффициенты кси и тета при прямом ходе
         в методе прогонки
@@ -71,20 +71,26 @@ class Spline:
         # добавим None для соблюдения индексации, ведь при вычислении
         # прогоночных коэффициентов 2 <= n <= N, ноль добавляется потому,
         # что кси2 и тета2 равны нулю из условия С_1 равно ноль системы 12
-        self.ksi_n.extend([None, 0])
-        self.theta_n.extend([None, 0])
+        self.ksi_n.extend([None, ksi2])
+        self.theta_n.extend([None, theta2])
 
-        for n in range(1, len(self.data.data_table) - 2):
-            ksi_n_plus_1 = -(self.h_n[n]) / (self.h_n[n - 1] * self.theta_n[n] + 2 * (self.h_n[n - 1] + self.h_n[n]))
-            f_n = 3 * ((self.a_n[n + 1] - self.a_n[n]) / self.h_n[n] -
-                       (self.a_n[n] - self.a_n[n - 1]) / self.h_n[n - 1])
-            theta_n_plus_1 = (f_n - self.h_n[n - 1] * self.theta_n[n]) / \
-                             (self.h_n[n - 1] * self.theta_n[n] + 2 * (self.h_n[n - 1] + self.h_n[n]))
+        for n in range(1, len(self.data.data_table) - 1):  # правильный диапазон
+            # считаем левый прогоночный коэффициент (правильно)
+            ksin_plus_1 = -(self.h_n[n]) / (self.h_n[n - 1] * self.ksi_n[n] + 2 * (self.h_n[n - 1] + self.h_n[n]))
 
-            self.ksi_n.append(ksi_n_plus_1)
-            self.theta_n.append(theta_n_plus_1)
+            # считаем правую часть уравнения системы (правильно)
+            fn = 3 * ((self.a_n[n + 1] - self.a_n[n]) / self.h_n[n] -
+                      (self.a_n[n] - self.a_n[n - 1]) / self.h_n[n - 1])
 
-    def calc_c_n_coef(self) -> None:
+            # считаем правый прогоночный коэффициент (правильно)
+            thetan_plus_1 = (fn - self.h_n[n - 1] * self.theta_n[n]) / \
+                            (self.h_n[n - 1] * self.ksi_n[n] + 2 * (self.h_n[n - 1] + self.h_n[n]))
+
+            # добавляем в списки коэффициентов
+            self.ksi_n.append(ksin_plus_1)
+            self.theta_n.append(thetan_plus_1)
+
+    def calc_c_n_coef(self, cn_plus1: float) -> None:
         """
         Метод вычисляет коэффициенты С_n для сплайна по формуле 13
         в обратном ходе метода прогонки
@@ -96,12 +102,15 @@ class Spline:
         # сначала очищаю список коэффициентов С_n, если ранее они были посчитаны
         self.c_n.clear()
 
-        for n in range(len(self.ksi_n) - 1, -1, -1):
-            if n == len(self.ksi_n) - 1:
-                cn = self.ksi_n[n] * 0 + self.theta_n[n]
+        # иду в цикле по прогоночным коэффициентам
+        for n in range(len(self.ksi_n) - 2, -1, -1):  # правильный диапазон
+            if n == len(self.ksi_n) - 2:
+                # тут участвует cn+1
+                cn = self.ksi_n[n + 1] * cn_plus1 + self.theta_n[n + 1]  # правильно
             else:
-                # print("len(self.ksi_n) - 1 - n = ", len(self.ksi_n) - 1 - n)
-                cn = self.ksi_n[n + 1] * self.c_n[len(self.ksi_n) - 1 - n - 1] + self.theta_n[n + 1]
+                # правильно
+                cn = self.ksi_n[n + 1] * self.c_n[len(self.ksi_n) - 2 - n - 1] + self.theta_n[n + 1]
+
             self.c_n.append(cn)
 
         self.c_n.reverse()
@@ -118,12 +127,13 @@ class Spline:
         # сначала очищаю список коэффициентов B_n, если ранее они были посчитаны
         self.b_n.clear()
 
-        for n in range(len(self.data.data_table) - 2):
+        for n in range(len(self.data.data_table) - 2):  # правильно
             bn = (self.a_n[n + 1] - self.a_n[n]) / self.h_n[n] - self.h_n[n] * ((self.c_n[n + 1] + 2 * self.c_n[n]) / 3)
             self.b_n.append(bn)
 
         n = len(self.data.data_table) - 2
         bn = (self.a_n[n + 1] - self.a_n[n]) / self.h_n[n] - self.h_n[n] * ((2 * self.c_n[n]) / 3)
+
         self.b_n.append(bn)
 
     def calc_d_n_coef(self) -> None:
@@ -144,6 +154,7 @@ class Spline:
 
         n = len(self.data.data_table) - 2
         dn = -(self.c_n[n] / (3 * self.h_n[n]))
+
         self.d_n.append(dn)
 
     def find_interval(self, x: float):
@@ -154,7 +165,7 @@ class Spline:
         if x <= self.data.data_table[0].x:
             return 0, self.data.data_table[0].x, self.data.data_table[1].x
         elif x > self.data.data_table[-1].x:
-            return len(self.data.data_table) - 1, self.data.data_table[-2].x, self.data.data_table[-1].x
+            return len(self.data.data_table) - 2, self.data.data_table[-2].x, self.data.data_table[-1].x
 
         index = 0
         # Шаг 3. Ищем первый элемент в списке x, который больше value
@@ -166,14 +177,14 @@ class Spline:
         # Шаг 5. Возвращаем номер интервала и информацию о границах этого интервала
         return index - 1, self.data.data_table[index - 1].x, self.data.data_table[index].x
 
-    def spline_interpolation(self) -> None:
+    def spline_interpolation(self, ksi2: float, theta2: float, cn_plus1: float) -> None:
         """
         Метод выполняет интерполяцию сплайном
         """
         self.calc_a_n_coef()
         self.calc_diff_h()
-        self.calc_ksi_theta()
-        self.calc_c_n_coef()
+        self.calc_ksi_theta(ksi2, theta2)
+        self.calc_c_n_coef(cn_plus1)
         self.calc_b_n_coef()
         self.calc_d_n_coef()
 
